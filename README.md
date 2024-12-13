@@ -1,66 +1,94 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel Hiring Test
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Project Overview
+Create a Laravel APIs application for a travel agency.
 
-## About Laravel
+### Glossary
+- **Travel**: The main unit of the project, containing all necessary information such as the number of days, images, title, etc.  
+  Examples:
+  - *Japan: Road to Wonder*
+  - *Norway: The Land of the Ice*
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Tour**: A specific date range of a travel with its own price and details.  
+  Example:
+  - *Japan: Road to Wonder* may have:
+    - A tour from **10 to 27 May** at **€1899**.
+    - Another tour from **10 to 15 September** at **€669**.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+  *At the end, users will book a tour, not a travel.*
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Goals
+By the end of the project, the application should have:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Private (Admin) Endpoints:
+1. **Create New Users**:
+   - Optionally implemented as an Artisan command.
+   - Primarily used to generate users for this exercise.
+   
+2. **Create New Travels**.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3. **Create New Tours for a Travel**.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Private (Editor) Endpoint:
+1. **Update a Travel**.
 
-## Laravel Sponsors
+### Public (No Authentication) Endpoints:
+1. **List of Paginated Travels**:
+   - Returns only public travels.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. **List of Paginated Tours by Travel Slug**:
+   - Example: `GET /travels/foo-bar/tours`.
+   - Supports filtering by:
+     - `priceFrom`, `priceTo` (tour price range).
+     - `dateFrom` (starting date).
+     - `dateTo` (ending date).
+   - Supports sorting by:
+     - `price` (ascending or descending).
+   - Always sorted by `startingDate` in ascending order after applying filters.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Models
 
-## Contributing
+### **Users**
+- `ID`
+- `Email`
+- `Password`
+- `Roles` (Many-to-Many relationship)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### **Roles**
+- `ID`
+- `Name`
 
-## Code of Conduct
+### **Travels**
+- `ID`
+- `isPublic` (boolean)
+- `Slug`
+- `Name`
+- `Description`
+- `Number of Days`
+- `Number of Nights` (virtual, computed as `numberOfDays - 1`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### **Tours**
+- `ID`
+- `travel_id` (Many-to-One relationship with `Travels`)
+- `Name`
+- `Starting Date`
+- `Ending Date`
+- `Price` (integer, stored as cents)
+- `Notes`
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Additional Notes
+1. Use Laravel's native authentication.
+2. **UUIDs** as primary keys are highly appreciated but not required.
+3. Store tour prices as integers multiplied by 100 (e.g., €999 becomes `99900`).  
+   When returning to frontends, format as `price / 100`.
+4. Admin users must also have the editor role.
+5. Creation endpoints must only create **one resource per request** (no bulk creation).
+6. Usage of tools like `php-cs-fixer` and `larastan` is a plus.
+7. Writing documentation is a **big plus**.
+8. Writing feature tests is a **big, big plus**.
